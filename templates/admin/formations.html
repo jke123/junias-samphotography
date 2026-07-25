@@ -1,0 +1,68 @@
+{% extends "base_admin.html" %}
+{% block title %}Formations{% endblock %}{% block page_title %}Formations & Diplômes{% endblock %}
+{% block content %}
+<div class="admin-card mb-3">
+  <div class="admin-card__header"><h3><i class="fas fa-plus"></i> Ajouter</h3></div>
+  <div class="admin-card__body">
+    <form method="POST" action="{{ url_for('admin_form_add') }}">
+      <div class="form-row">
+        <div class="form-group"><label>Titre *</label><input type="text" name="title" required placeholder="Formation en photographie"></div>
+        <div class="form-group"><label>Institution</label><input type="text" name="institution" placeholder="Centre de formation Lumière"></div>
+        <div class="form-group"><label>Année</label><input type="text" name="year" placeholder="2019"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Description</label><input type="text" name="description" placeholder="Précisions…"></div>
+        <div class="form-group"><label>Ordre</label><input type="number" name="order" value="0" min="0"></div>
+        <div class="form-group form-group--check"><label class="checkbox-label"><input type="checkbox" name="visible" checked> Visible</label></div>
+      </div>
+      <button type="submit" class="btn btn--admin-primary"><i class="fas fa-plus"></i> Ajouter</button>
+    </form>
+  </div>
+</div>
+<div class="admin-card">
+  <div class="admin-card__header"><h3>Formations ({{ formations|length }})</h3></div>
+  <div class="admin-card__body">
+    {% if formations %}
+    <div class="admin-table-wrap"><table class="admin-table">
+      <thead><tr><th>Titre</th><th>Institution</th><th>Année</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody>{% for f in formations %}
+      <tr>
+        <td><strong>{{ f.title }}</strong></td><td>{{ f.institution or '—' }}</td><td>{{ f.year or '—' }}</td>
+        <td><span class="status-badge {% if f.visible %}status-badge--on{% else %}status-badge--off{% endif %}">{{ 'Visible' if f.visible else 'Masqué' }}</span></td>
+        <td class="actions-cell">
+          <button class="btn-icon btn-icon--primary" onclick="openEditForm({{ f.id }},'{{ f.title|replace("'","\'") }}','{{ f.institution|replace("'","\'") }}','{{ f.year }}','{{ f.description|replace("'","\'") }}',{{ f.order }},{{ f.visible|lower }})"><i class="fas fa-pen"></i></button>
+          <a href="{{ url_for('admin_form_delete', fid=f.id) }}" class="btn-icon btn-icon--danger" onclick="return confirm('Supprimer ?')"><i class="fas fa-trash"></i></a>
+        </td>
+      </tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}<div class="empty-note">Aucune formation.</div>{% endif %}
+  </div>
+</div>
+<div class="modal" id="editFormModal"><div class="modal-card">
+  <div class="modal-header"><h3>Modifier</h3><button onclick="closeModal()" class="modal-close"><i class="fas fa-times"></i></button></div>
+  <form method="POST" id="editFormForm"><div class="modal-body">
+    <div class="form-row">
+      <div class="form-group"><label>Titre</label><input type="text" name="title" id="efTitle" required></div>
+      <div class="form-group"><label>Institution</label><input type="text" name="institution" id="efInst"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Année</label><input type="text" name="year" id="efYear"></div>
+      <div class="form-group"><label>Ordre</label><input type="number" name="order" id="efOrder" min="0"></div>
+    </div>
+    <div class="form-group"><label>Description</label><input type="text" name="description" id="efDesc"></div>
+    <div class="form-group form-group--check"><label class="checkbox-label"><input type="checkbox" name="visible" id="efVisible"> Visible</label></div>
+  </div>
+  <div class="modal-footer"><button type="button" onclick="closeModal()" class="btn btn--outline">Annuler</button><button type="submit" class="btn btn--admin-primary">Enregistrer</button></div>
+  </form>
+</div></div>
+{% endblock %}
+{% block extra_scripts %}<script>
+function openEditForm(id,title,inst,year,desc,order,visible){
+  document.getElementById('efTitle').value=title;document.getElementById('efInst').value=inst;
+  document.getElementById('efYear').value=year;document.getElementById('efDesc').value=desc;
+  document.getElementById('efOrder').value=order;document.getElementById('efVisible').checked=visible;
+  document.getElementById('editFormForm').action='/admin/formations/edit/'+id;
+  document.getElementById('editFormModal').classList.add('open');
+  document.getElementById('modalOverlay').classList.add('open');
+}
+</script>{% endblock %}
