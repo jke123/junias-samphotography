@@ -1,0 +1,167 @@
+{% extends "base_public.html" %}
+{% block content %}
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    {% if cfg.get('photographer_name') %}
+      <p class="hero-eyebrow reveal">Photographe Professionnel</p>
+      <h1 class="hero-title reveal">{{ cfg['photographer_name'] }}</h1>
+      {% if cfg.get('structure_name') %}
+        <p class="hero-structure reveal">{{ cfg['structure_name'] }}</p>
+      {% endif %}
+      {% if cfg.get('about_short') %}
+        <p class="hero-tagline reveal">{{ cfg['about_short'] }}</p>
+      {% endif %}
+      {% if cfg.get('years_experience') %}
+        <p class="hero-years reveal"><span class="years-num">{{ cfg['years_experience'] }}</span> ans d'expérience</p>
+      {% endif %}
+    {% else %}
+      <p class="hero-eyebrow reveal">Photographe Professionnel</p>
+      <h1 class="hero-title reveal">Portfolio</h1>
+      <p class="hero-tagline reveal">Bienvenue sur mon portfolio</p>
+    {% endif %}
+    <div class="hero-cta reveal">
+      <a href="{{ url_for('gallery') }}" class="btn btn--gold">Voir la Galerie</a>
+      <a href="{{ url_for('contact') }}" class="btn btn--outline">Me Contacter</a>
+    </div>
+  </div>
+  <div class="hero-scroll"><span>Défiler</span><i class="fas fa-chevron-down"></i></div>
+</section>
+
+<!-- À PROPOS -->
+{% if cfg.get('about_full') or cfg.get('about_short') %}
+<section class="section about-section" id="about">
+  <div class="container">
+    <div class="about-grid">
+      {% if cfg.get('profile_photo') %}
+      <div class="about-photo-wrap reveal">
+        <div class="about-photo-frame">
+          <img src="{{ cfg['profile_photo'] }}" alt="{{ cfg.get('photographer_name','Photographe') }}" class="about-photo">
+        </div>
+        {% if cfg.get('years_experience') %}
+        <div class="about-badge">
+          <span class="badge-num">{{ cfg['years_experience'] }}</span>
+          <span class="badge-txt">Ans d'<br>Expérience</span>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+      <div class="about-text reveal">
+        <span class="section-label">À Propos</span>
+        <h2 class="section-title">{{ cfg.get('photographer_name','') }}</h2>
+        {% if cfg.get('structure_name') %}
+          <p class="about-structure"><i class="fas fa-camera"></i> {{ cfg['structure_name'] }}</p>
+        {% endif %}
+        <div class="about-desc">{{ (cfg.get('about_full') or cfg.get('about_short',''))|replace('\n','<br>')|safe }}</div>
+        {% if cfg.get('specialties') %}
+        <div class="specialties">
+          {% for sp in cfg['specialties'].split(',') %}
+            <span class="specialty-tag">{{ sp.strip() }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+        <a href="{{ url_for('contact') }}" class="btn btn--gold" style="margin-top:1.5rem">Prendre Contact</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- PROJETS -->
+{% if projects %}
+<section class="section" id="projects">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-label">Réalisations</span>
+      <h2 class="section-title">Mes Projets</h2>
+    </div>
+    <div class="projects-grid">
+      {% for p in projects %}
+      <a href="{{ url_for('project_detail', pid=p.id) }}" class="project-card reveal">
+        <div class="project-card__img">
+          {% if p.cover_photo %}
+            <img src="{{ p.cover_photo }}" alt="{{ p.title }}" loading="lazy">
+          {% else %}
+            <div class="project-card__placeholder"><i class="fas fa-camera"></i></div>
+          {% endif %}
+          <div class="project-card__overlay"><span class="project-card__cat">{{ p.category }}</span></div>
+        </div>
+        <div class="project-card__body">
+          <h3 class="project-card__title">{{ p.title }}</h3>
+          {% if p.date %}<span class="project-card__date">{{ p.date }}</span>{% endif %}
+          {% if p.description %}<p class="project-card__desc">{{ p.description[:120] }}{% if p.description|length > 120 %}…{% endif %}</p>{% endif %}
+          <span class="project-card__link">Voir le projet <i class="fas fa-arrow-right"></i></span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-3 reveal">
+      <a href="{{ url_for('projects') }}" class="btn btn--outline">Tous les projets</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- EXPÉRIENCES -->
+{% if experiences %}
+<section class="section timeline-section" id="experiences">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-label">Parcours</span>
+      <h2 class="section-title">Expériences</h2>
+    </div>
+    <div class="timeline">
+      {% for exp in experiences %}
+      <div class="timeline-item reveal">
+        <div class="timeline-marker"></div>
+        <div class="timeline-body">
+          <div class="timeline-period">{{ exp.year_start }}{% if exp.year_end %} — {{ exp.year_end }}{% endif %}</div>
+          <h3 class="timeline-title">{{ exp.title }}</h3>
+          {% if exp.company %}<p class="timeline-company"><i class="fas fa-building"></i> {{ exp.company }}</p>{% endif %}
+          {% if exp.description %}<p class="timeline-desc">{{ exp.description }}</p>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- FORMATIONS -->
+{% if formations %}
+<section class="section formations-section">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-label">Formation</span>
+      <h2 class="section-title">Diplômes & Certifications</h2>
+    </div>
+    <div class="formations-grid">
+      {% for f in formations %}
+      <div class="formation-card reveal">
+        <div class="formation-icon"><i class="fas fa-graduation-cap"></i></div>
+        <div class="formation-body">
+          <h3 class="formation-title">{{ f.title }}</h3>
+          {% if f.institution %}<p class="formation-inst">{{ f.institution }}</p>{% endif %}
+          {% if f.year %}<span class="formation-year">{{ f.year }}</span>{% endif %}
+          {% if f.description %}<p class="formation-desc">{{ f.description }}</p>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- CTA -->
+<section class="cta-section reveal">
+  <div class="cta-inner">
+    <h2 class="cta-title">Donnez vie à vos souvenirs</h2>
+    <p class="cta-sub">Mariages, portraits, événements… Je capture chaque instant avec passion.</p>
+    <a href="{{ url_for('contact') }}" class="btn btn--gold btn--lg">Réserver une séance</a>
+  </div>
+</section>
+
+{% endblock %}

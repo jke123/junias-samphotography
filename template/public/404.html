@@ -1,0 +1,16 @@
+{% extends "base_public.html" %}
+{% block title %}Page introuvable{% endblock %}
+{% block content %}
+<section class="error-section">
+  <div class="error-inner">
+    <div class="error-number">404</div>
+    <h1 class="error-title">Page introuvable</h1>
+    <p class="error-sub">Cette page n'existe pas ou a été déplacée.</p>
+    <div class="error-actions">
+      <a href="{{ url_for('index') }}"   class="btn btn--gold"><i class="fas fa-home"></i> Accueil</a>
+      <a href="{{ url_for('gallery') }}" class="btn btn--outline"><i class="fas fa-images"></i> Galerie</a>
+      <a href="{{ url_for('contact') }}" class="btn btn--outline"><i class="fas fa-envelope"></i> Contact</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
