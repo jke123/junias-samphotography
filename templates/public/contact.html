@@ -1,0 +1,80 @@
+{% extends "base_public.html" %}
+{% block title %}Contact — {{ cfg.get('structure_name', cfg.get('photographer_name','Portfolio')) }}{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="page-hero__content">
+    <span class="section-label">Parlons-nous</span>
+    <h1 class="page-hero__title">Contact</h1>
+  </div>
+</section>
+
+<section class="section contact-section">
+  <div class="container">
+    <div class="contact-grid">
+
+      <div class="contact-info-side reveal">
+        <h2 class="contact-heading">Restons en contact</h2>
+        <p class="contact-intro">
+          {% if cfg.get('about_short') %}{{ cfg['about_short'] }}
+          {% else %}Pour toute demande de séance, devis ou collaboration, contactez-moi.{% endif %}
+        </p>
+        <div class="contact-items">
+          {% for c in contacts %}
+          <div class="contact-item">
+            <div class="contact-item__icon"><i class="{{ c.icon }}"></i></div>
+            <div class="contact-item__body">
+              <span class="contact-item__label">{{ c.label or c.type|capitalize }}</span>
+              {% if c.type=='whatsapp' %}
+                <a href="https://wa.me/{{ c.value|replace('+','') }}" target="_blank" class="contact-item__val">{{ c.value }}</a>
+              {% elif c.type=='phone' %}
+                <a href="tel:{{ c.value }}" class="contact-item__val">{{ c.value }}</a>
+              {% elif c.type=='email' %}
+                <a href="mailto:{{ c.value }}" class="contact-item__val">{{ c.value }}</a>
+              {% else %}
+                <a href="{{ c.value }}" target="_blank" class="contact-item__val">{{ c.value }}</a>
+              {% endif %}
+            </div>
+          </div>
+          {% else %}
+          <p class="contact-no-info">Les coordonnées seront disponibles prochainement.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="contact-form-side reveal">
+        <div class="contact-form-card">
+          <h3 class="form-card-title">Envoyer un message</h3>
+          <form method="POST" action="{{ url_for('contact') }}" class="contact-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="name">Nom complet <span class="req">*</span></label>
+                <input type="text" id="name" name="name" placeholder="Votre nom" required>
+              </div>
+              <div class="form-group">
+                <label for="phone">Téléphone</label>
+                <input type="tel" id="phone" name="phone" placeholder="+229 xx xx xx xx">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" placeholder="votre@email.com">
+            </div>
+            <div class="form-group">
+              <label for="subject">Sujet</label>
+              <input type="text" id="subject" name="subject" placeholder="Mariage, séance photo…">
+            </div>
+            <div class="form-group">
+              <label for="body">Message <span class="req">*</span></label>
+              <textarea id="body" name="body" rows="5" placeholder="Décrivez votre projet…" required></textarea>
+            </div>
+            <button type="submit" class="btn btn--gold btn--full">
+              <i class="fas fa-paper-plane"></i> Envoyer
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endblock %}

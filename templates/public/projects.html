@@ -1,0 +1,41 @@
+{% extends "base_public.html" %}
+{% block title %}Projets — {{ cfg.get('structure_name', cfg.get('photographer_name','Portfolio')) }}{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="page-hero__content">
+    <span class="section-label">Réalisations</span>
+    <h1 class="page-hero__title">Projets</h1>
+  </div>
+</section>
+<section class="section">
+  <div class="container">
+    {% if projects %}
+    <div class="projects-grid projects-grid--full">
+      {% for p in projects %}
+      <a href="{{ url_for('project_detail', pid=p.id) }}" class="project-card reveal">
+        <div class="project-card__img">
+          {% if p.cover_photo %}
+            <img src="{{ p.cover_photo }}" alt="{{ p.title }}" loading="lazy">
+          {% else %}
+            <div class="project-card__placeholder"><i class="fas fa-camera"></i></div>
+          {% endif %}
+          <div class="project-card__overlay"><span class="project-card__cat">{{ p.category }}</span></div>
+        </div>
+        <div class="project-card__body">
+          <h3 class="project-card__title">{{ p.title }}</h3>
+          {% if p.date %}<span class="project-card__date">{{ p.date }}</span>{% endif %}
+          {% if p.description %}<p class="project-card__desc">{{ p.description[:150] }}{% if p.description|length>150 %}…{% endif %}</p>{% endif %}
+          <span class="project-card__link">Voir le projet <i class="fas fa-arrow-right"></i></span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state reveal">
+      <i class="fas fa-folder-open empty-state__icon"></i>
+      <p>Aucun projet disponible pour le moment.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

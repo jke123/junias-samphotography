@@ -1,0 +1,82 @@
+{% extends "base_public.html" %}
+{% block title %}Galerie — {{ cfg.get('structure_name', cfg.get('photographer_name','Portfolio')) }}{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <div class="page-hero__content">
+    <span class="section-label">Mes Photos</span>
+    <h1 class="page-hero__title">Galerie</h1>
+  </div>
+</section>
+
+<section class="section gallery-section">
+  <div class="container">
+
+    {% if categories %}
+    <div class="filter-tabs reveal">
+      <a href="{{ url_for('gallery') }}" class="filter-tab {% if current_cat=='all' %}active{% endif %}">Tout</a>
+      {% for cat in categories %}
+        <a href="{{ url_for('gallery', cat=cat) }}" class="filter-tab {% if current_cat==cat %}active{% endif %}">{{ cat|capitalize }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if photos %}
+    <div class="masonry-gallery">
+      {% for photo in photos %}
+      <div class="masonry-item reveal">
+        <div class="gal-thumb" onclick="Gallery.open({{ loop.index0 }})">
+          <img src="{{ photo.filename }}" alt="{{ photo.title or 'Photo' }}" loading="lazy">
+          <div class="gal-thumb__overlay"><i class="fas fa-expand-alt"></i></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state reveal">
+      <i class="fas fa-images empty-state__icon"></i>
+      <p>Aucune photo disponible pour le moment.<br>Revenez bientôt !</p>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+<!-- LIGHTBOX -->
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Visionneuse de photos">
+
+  <!-- Barre haut -->
+  <div class="lb-topbar">
+    <button class="lb-iconbtn" id="lbClose" aria-label="Fermer"><i class="fas fa-times"></i></button>
+    <span class="lb-counter" id="lbCounter"></span>
+    <a class="lb-iconbtn" id="lbDl" download aria-label="Télécharger"><i class="fas fa-download"></i></a>
+  </div>
+
+  <!-- Zone de défilement -->
+  <div class="lb-viewport" id="lbViewport">
+    <button class="lb-nav lb-nav--l" id="lbPrev" aria-label="Précédent"><i class="fas fa-chevron-left"></i></button>
+    <div class="lb-track" id="lbTrack"></div>
+    <button class="lb-nav lb-nav--r" id="lbNext" aria-label="Suivant"><i class="fas fa-chevron-right"></i></button>
+  </div>
+
+  <!-- Info + Thumbnails -->
+  <div class="lb-bottom">
+    <div class="lb-info" id="lbInfo"></div>
+    <div class="lb-thumbs" id="lbThumbs"></div>
+  </div>
+
+</div>
+
+<!-- Données photos -->
+<script>
+const PHOTOS = [
+  {% for photo in photos %}
+  {src:"{{ photo.filename }}",title:"{{ photo.title|replace('"','\\"') }}",desc:"{{ photo.description|replace('"','\\"') }}"}{% if not loop.last %},{% endif %}
+  {% endfor %}
+];
+</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/gallery.js') }}"></script>
+{% endblock %}
