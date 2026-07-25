@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin{% endblock %} — Administration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="admin-body">
+<div class="admin-layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><i class="fas fa-camera sidebar-logo__icon"></i><span class="sidebar-logo__text">Admin</span></div>
+      <button class="sidebar-close" id="sidebarClose"><i class="fas fa-times"></i></button>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('admin_dashboard') }}"    class="sidebar-link {% if request.endpoint=='admin_dashboard' %}active{% endif %}"><i class="fas fa-th-large"></i><span>Tableau de bord</span></a>
+      <a href="{{ url_for('admin_profile') }}"      class="sidebar-link {% if request.endpoint=='admin_profile' %}active{% endif %}"><i class="fas fa-user"></i><span>Profil / À propos</span></a>
+      <a href="{{ url_for('admin_gallery') }}"      class="sidebar-link {% if request.endpoint=='admin_gallery' %}active{% endif %}"><i class="fas fa-images"></i><span>Galerie Photos</span></a>
+      <a href="{{ url_for('admin_projects') }}"     class="sidebar-link {% if request.endpoint=='admin_projects' %}active{% endif %}"><i class="fas fa-folder-open"></i><span>Projets</span></a>
+      <a href="{{ url_for('admin_experiences') }}"  class="sidebar-link {% if request.endpoint=='admin_experiences' %}active{% endif %}"><i class="fas fa-briefcase"></i><span>Expériences</span></a>
+      <a href="{{ url_for('admin_formations') }}"   class="sidebar-link {% if request.endpoint=='admin_formations' %}active{% endif %}"><i class="fas fa-graduation-cap"></i><span>Formations</span></a>
+      <a href="{{ url_for('admin_contact_info') }}" class="sidebar-link {% if request.endpoint=='admin_contact_info' %}active{% endif %}"><i class="fas fa-address-book"></i><span>Coordonnées</span></a>
+      <a href="{{ url_for('admin_messages') }}"     class="sidebar-link {% if request.endpoint=='admin_messages' %}active{% endif %}"><i class="fas fa-envelope"></i><span>Messages</span>{% if unread and unread>0 %}<span class="badge-count">{{ unread }}</span>{% endif %}</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('index') }}" target="_blank" class="sidebar-link"><i class="fas fa-external-link-alt"></i><span>Voir le site</span></a>
+      <a href="{{ url_for('admin_logout') }}" class="sidebar-link sidebar-link--danger"><i class="fas fa-sign-out-alt"></i><span>Déconnexion</span></a>
+    </div>
+  </aside>
+
+  <div class="admin-main" id="adminMain">
+    <header class="admin-topbar">
+      <button class="topbar-menu-btn" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+      <div class="topbar-title">{% block page_title %}Admin{% endblock %}</div>
+      <span class="topbar-user"><i class="fas fa-user-circle"></i> {{ current_user.username }}</span>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="admin-flashes">
+          {% for cat, msg in messages %}
+            <div class="admin-flash admin-flash--{{ cat }}">
+              <i class="fas {% if cat=='success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+              {{ msg }}
+              <button class="flash-dismiss" onclick="this.parentElement.remove()">×</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="admin-content">{% block content %}{% endblock %}</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()"></div>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

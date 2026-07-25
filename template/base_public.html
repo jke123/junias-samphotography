@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{% if cfg.get('structure_name') %}{{ cfg['structure_name'] }}{% elif cfg.get('photographer_name') %}{{ cfg['photographer_name'] }}{% else %}Portfolio Photographe{% endif %}{% endblock %}</title>
+  <meta name="description" content="{% block description %}Portfolio professionnel de photographie{% endblock %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Montserrat:wght@300;400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Montserrat:wght@300;400;500;600&display=swap"></noscript>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/public.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<div class="nav-progress" id="navProgress"></div>
+
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="{{ url_for('index') }}" class="nav-brand">
+      {% if cfg.get('structure_name') %}{{ cfg['structure_name'] }}
+      {% elif cfg.get('photographer_name') %}{{ cfg['photographer_name'] }}
+      {% else %}Portfolio{% endif %}
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="{{ url_for('index') }}"    class="nav-link {% if request.endpoint=='index' %}active{% endif %}">Accueil</a></li>
+      <li><a href="{{ url_for('gallery') }}"  class="nav-link {% if request.endpoint=='gallery' %}active{% endif %}">Galerie</a></li>
+      <li><a href="{{ url_for('projects') }}" class="nav-link {% if request.endpoint in ['projects','project_detail'] %}active{% endif %}">Projets</a></li>
+      <li><a href="{{ url_for('contact') }}"  class="nav-link {% if request.endpoint=='contact' %}active{% endif %}">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main class="page-main" id="pageMain">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for cat, msg in messages %}
+          <div class="flash flash--{{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="footer-name">
+        {% if cfg.get('structure_name') %}{{ cfg['structure_name'] }}
+        {% elif cfg.get('photographer_name') %}{{ cfg['photographer_name'] }}
+        {% else %}Portfolio{% endif %}
+      </span>
+      {% if cfg.get('structure_name') and cfg.get('photographer_name') %}
+        <span class="footer-sub">par {{ cfg['photographer_name'] }}</span>
+      {% endif %}
+    </div>
+    <div class="footer-socials">
+      {% for c in contacts %}
+        {% if c.type == 'whatsapp' %}
+          <a href="https://wa.me/{{ c.value|replace('+','') }}" target="_blank" class="footer-social" title="{{ c.label or 'WhatsApp' }}"><i class="{{ c.icon }}"></i></a>
+        {% elif c.type == 'phone' %}
+          <a href="tel:{{ c.value }}" class="footer-social" title="{{ c.label or 'Téléphone' }}"><i class="{{ c.icon }}"></i></a>
+        {% elif c.type == 'email' %}
+          <a href="mailto:{{ c.value }}" class="footer-social" title="{{ c.label or 'Email' }}"><i class="{{ c.icon }}"></i></a>
+        {% else %}
+          <a href="{{ c.value }}" target="_blank" class="footer-social" title="{{ c.label or c.type }}"><i class="{{ c.icon }}"></i></a>
+        {% endif %}
+      {% endfor %}
+    </div>
+    <p class="footer-copy">&copy; <span id="footerYear"></span>
+      {% if cfg.get('structure_name') %}{{ cfg['structure_name'] }}
+      {% elif cfg.get('photographer_name') %}{{ cfg['photographer_name'] }}{% endif %}.
+      Tous droits réservés.
+    </p>
+  </div>
+</footer>
+
+<!-- Bouton retour en haut -->
+<button class="scroll-top-btn" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Haut">
+  <i class="fas fa-chevron-up"></i>
+</button>
+
+<!-- WhatsApp flottant -->
+{% for c in contacts %}{% if c.type=='whatsapp' and c.visible %}
+<a href="https://wa.me/{{ c.value|replace('+','') }}" target="_blank" class="wa-float" title="WhatsApp">
+  <i class="fab fa-whatsapp"></i>
+</a>
+{% break %}{% endif %}{% endfor %}
+
+<script src="{{ url_for('static', filename='js/public.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>
