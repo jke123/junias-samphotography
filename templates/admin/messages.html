@@ -1,0 +1,60 @@
+{% extends "base_admin.html" %}
+{% block title %}Messages{% endblock %}{% block page_title %}Messages reçus{% endblock %}
+{% block content %}
+<div class="admin-card">
+  <div class="admin-card__header"><h3>Messages ({{ messages|length }}) {% if unread>0 %}<span class="badge-count">{{ unread }} non lus</span>{% endif %}</h3></div>
+  <div class="admin-card__body">
+    {% if messages %}
+    <div class="messages-full-list">
+      {% for msg in messages %}
+      <div class="msg-full-row {% if not msg.is_read %}msg-full-row--unread{% endif %}" onclick="openMsg({{ msg.id }})">
+        <div class="msg-full-avatar">{{ msg.name[0]|upper }}</div>
+        <div class="msg-full-body">
+          <div class="msg-full-top">
+            <span class="msg-full-name">{{ msg.name }}</span>
+            {% if msg.phone %}<span class="msg-meta"><i class="fas fa-phone"></i> {{ msg.phone }}</span>{% endif %}
+            {% if msg.email %}<span class="msg-meta"><i class="fas fa-envelope"></i> {{ msg.email }}</span>{% endif %}
+            <span class="msg-full-date">{{ msg.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+          </div>
+          {% if msg.subject %}<div class="msg-full-subject">{{ msg.subject }}</div>{% endif %}
+          <p class="msg-full-preview">{{ msg.body[:120] }}{% if msg.body|length>120 %}…{% endif %}</p>
+        </div>
+        <div class="msg-full-status">{% if not msg.is_read %}<span class="msg-dot"></span>{% endif %}</div>
+      </div>{% endfor %}
+    </div>
+    {% else %}<div class="empty-note"><i class="fas fa-inbox" style="font-size:2.5rem;opacity:.2;display:block;margin-bottom:.75rem"></i>Aucun message reçu.</div>{% endif %}
+  </div>
+</div>
+<div class="modal modal--lg" id="msgModal"><div class="modal-card">
+  <div class="modal-header"><h3 id="mmName">Message</h3><button onclick="closeModal()" class="modal-close"><i class="fas fa-times"></i></button></div>
+  <div class="modal-body">
+    <div class="msg-detail-meta" id="mmMeta"></div>
+    <div class="msg-detail-subject" id="mmSubject"></div>
+    <div class="msg-detail-body" id="mmBody"></div>
+  </div>
+  <div class="modal-footer">
+    <a href="#" id="mmDel" class="btn btn--danger" onclick="return confirm('Supprimer ?')"><i class="fas fa-trash"></i> Supprimer</a>
+    <a href="#" id="mmRead" class="btn btn--admin-primary"><i class="fas fa-check"></i> Marquer lu</a>
+    <button onclick="closeModal()" class="btn btn--outline">Fermer</button>
+  </div>
+</div></div>
+<script>
+const MSGS={{% for msg in messages %}{{ msg.id }}:{name:{{ msg.name|tojson }},phone:{{ (msg.phone or '')|tojson }},email:{{ (msg.email or '')|tojson }},subject:{{ (msg.subject or '')|tojson }},body:{{ msg.body|tojson }},date:{{ msg.created_at.strftime('%d/%m/%Y à %H:%M')|tojson }},read:{{ msg.is_read|tojson }}}{% if not loop.last %},{% endif %}{% endfor %}};
+function openMsg(id){
+  const m=MSGS[id];
+  document.getElementById('mmName').textContent=m.name;
+  let meta='';
+  if(m.phone)meta+=`<span><i class="fas fa-phone"></i> ${m.phone}</span>`;
+  if(m.email)meta+=`<span><i class="fas fa-envelope"></i> ${m.email}</span>`;
+  meta+=`<span><i class="fas fa-clock"></i> ${m.date}</span>`;
+  document.getElementById('mmMeta').innerHTML=meta;
+  document.getElementById('mmSubject').textContent=m.subject?'Sujet : '+m.subject:'';
+  document.getElementById('mmBody').textContent=m.body;
+  document.getElementById('mmDel').href='/admin/messages/delete/'+id;
+  document.getElementById('mmRead').href='/admin/messages/read/'+id;
+  document.getElementById('mmRead').style.display=m.read?'none':'inline-flex';
+  document.getElementById('msgModal').classList.add('open');
+  document.getElementById('modalOverlay').classList.add('open');
+}
+</script>
+{% endblock %}
