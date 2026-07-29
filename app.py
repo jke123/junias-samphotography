@@ -118,8 +118,7 @@ def index():
     experiences = Experience.query.filter_by(visible=True).order_by(Experience.order).all()
     formations  = Formation.query.filter_by(visible=True).order_by(Formation.order).all()
     contacts    = ContactInfo.query.filter_by(visible=True).order_by(ContactInfo.order).all()
-    return render_template("public/index.html", cfg=cfg, projects=projects,
-                           experiences=experiences, formations=formations, contacts=contacts)
+    return render_template("public/index.html", cfg=cfg, projects=projects, experiences=experiences, formations=formations, contacts=contacts)
 
 
 @app.route("/gallery")
@@ -132,8 +131,7 @@ def gallery():
     photos = q.order_by(Photo.order, Photo.created_at.desc()).all()
     cats   = [c[0] for c in db.session.query(Photo.category).filter_by(visible=True).distinct().all()]
     contacts = ContactInfo.query.filter_by(visible=True).order_by(ContactInfo.order).all()
-    return render_template("public/gallery.html", cfg=cfg, photos=photos,
-                           categories=cats, current_cat=category, contacts=contacts)
+    return render_template("public/gallery.html", cfg=cfg, photos=photos, categories=cats, current_cat=category, contacts=contacts)
 
 
 @app.route("/projects")
@@ -152,8 +150,7 @@ def project_detail(pid):
         return redirect(url_for("projects"))
     photos  = Photo.query.filter_by(project_id=pid, visible=True).order_by(Photo.order).all()
     contacts = ContactInfo.query.filter_by(visible=True).order_by(ContactInfo.order).all()
-    return render_template("public/project_detail.html", cfg=cfg, project=project,
-                           photos=photos, contacts=contacts)
+    return render_template("public/project_detail.html", cfg=cfg, project=project, photos=photos, contacts=contacts)
 
 
 @app.route("/contact", methods=["GET", "POST"])
@@ -218,8 +215,7 @@ def admin_dashboard():
         "formations": Formation.query.count(),
     }
     recent_messages = Message.query.order_by(Message.created_at.desc()).limit(5).all()
-    return render_template("admin/dashboard.html", stats=stats,
-                           recent_messages=recent_messages, unread=unread_count())
+    return render_template("admin/dashboard.html", stats=stats, recent_messages=recent_messages, unread=unread_count())
 
 
 # ─────────────────────────────────────────────
@@ -294,9 +290,7 @@ def admin_profile():
 @app.route("/admin/experiences")
 @login_required
 def admin_experiences():
-    return render_template("admin/experiences.html",
-                           experiences=Experience.query.order_by(Experience.order).all(),
-                           unread=unread_count())
+    return render_template("admin/experiences.html", experiences=Experience.query.order_by(Experience.order).all(), unread=unread_count())
 
 
 @app.route("/admin/experiences/add", methods=["POST"])
@@ -408,8 +402,7 @@ CATEGORIES = [
 @login_required
 def admin_gallery():
     photos = Photo.query.order_by(Photo.created_at.desc()).all()
-    return render_template("admin/gallery.html", photos=photos,
-                           categories=CATEGORIES, unread=unread_count())
+    return render_template("admin/gallery.html", photos=photos, categories=CATEGORIES, unread=unread_count())
 
 
 @app.route("/admin/gallery/add", methods=["POST"])
