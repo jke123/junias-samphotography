@@ -1,0 +1,222 @@
+{% extends "base_admin.html" %}
+{% block title %}Galerie{% endblock %}
+{% block page_title %}Galerie Photos{% endblock %}
+
+{% block content %}
+
+<!-- Upload client-side (direct ImgBB) -->
+<div class="admin-card mb-3">
+  <div class="admin-card__header"><h3><i class="fas fa-upload"></i> Ajouter des photos</h3></div>
+  <div class="admin-card__body">
+
+    <div class="form-row mb-2">
+      <div class="form-group">
+        <label>Catégorie</label>
+        <select id="upCategory">
+          {% for val, label in categories %}
+            <option value="{{ val }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Titre (optionnel)</label>
+        <input type="text" id="upTitle" placeholder="Titre commun aux photos">
+      </div>
+      <div class="form-group">
+        <label>Description (optionnel)</label>
+        <input type="text" id="upDesc" placeholder="Description courte…">
+      </div>
+    </div>
+
+    <!-- Zone de dépôt -->
+    <div class="file-drop-zone" id="dropZone">
+      <i class="fas fa-cloud-upload-alt"></i>
+      <p>Glissez vos photos ici ou <label for="fileInput" style="cursor:pointer;color:var(--gold)">cliquez pour parcourir</label></p>
+      <p class="hint">JPG, PNG, WEBP — plusieurs fichiers acceptés</p>
+      <input type="file" id="fileInput" accept="image/*" multiple>
+    </div>
+
+    <!-- Prévisualisation -->
+    <div id="previewGrid" class="upload-preview-grid" style="display:none"></div>
+
+    <!-- Progression globale -->
+    <div id="progressWrap" style="display:none;margin-top:1rem">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem">
+        <div class="lb-spinner" style="width:18px;height:18px;border-width:2px"></div>
+        <span id="progressText" style="font-size:.82rem;color:var(--muted)">Envoi en cours…</span>
+      </div>
+      <div class="upload-progress-bar"><div class="upload-progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap;align-items:center">
+      <button id="uploadBtn" class="btn btn--admin-primary" disabled onclick="startUpload()">
+        <i class="fas fa-upload"></i> Envoyer <span id="fileCount"></span>
+      </button>
+      <button id="clearBtn" class="btn btn--outline" onclick="clearFiles()" style="display:none">
+        <i class="fas fa-times"></i> Annuler
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Photos existantes -->
+<div class="admin-card">
+  <div class="admin-card__header"><h3>Photos ({{ photos|length }})</h3></div>
+  <div class="admin-card__body">
+    {% if photos %}
+    <div class="admin-photos-grid">
+      {% for photo in photos %}
+      <div class="admin-photo-item {% if not photo.visible %}admin-photo-item--hidden{% endif %}">
+        <div class="admin-photo-img">
+          <img src="{{ photo.filename }}" alt="{{ photo.title or '' }}" loading="lazy">
+          <div class="admin-photo-overlay"><span class="admin-photo-cat">{{ photo.category }}</span></div>
+        </div>
+        <div class="admin-photo-body">
+          <p class="admin-photo-title">{{ photo.title or '—' }}</p>
+          <div class="admin-photo-actions">
+            <a href="{{ url_for('admin_photo_toggle', pid=photo.id) }}" class="btn-icon {% if photo.visible %}btn-icon--warn{% else %}btn-icon--success{% endif %}" title="{{ 'Masquer' if photo.visible else 'Afficher' }}">
+              <i class="fas {% if photo.visible %}fa-eye-slash{% else %}fa-eye{% endif %}"></i>
+            </a>
+            <a href="{{ url_for('admin_photo_delete', pid=photo.id) }}" class="btn-icon btn-icon--danger" onclick="return confirm('Supprimer ?')">
+              <i class="fas fa-trash"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-note">Aucune photo. Ajoutez-en ci-dessus.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let selectedFiles = [];
+let cloudName = '';
+let uploadPreset = '';
+
+// Récupérer la config Cloudinary (non secrète)
+fetch('/api/upload-key').then(r=>r.json()).then(d=>{
+  cloudName = d.cloud_name || '';
+  uploadPreset = d.upload_preset || '';
+});
+
+// Sélection fichiers
+const fileInput = document.getElementById('fileInput');
+fileInput.addEventListener('change', e => handleFiles(Array.from(e.target.files)));
+
+// Drag & drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', ()=>dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e=>{
+  e.preventDefault(); dz.classList.remove('drag-over');
+  const files = Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
+  handleFiles(files);
+  const dt = new DataTransfer();
+  files.forEach(f=>dt.items.add(f));
+  fileInput.files = dt.files;
+});
+
+function handleFiles(files) {
+  if (!files.length) return;
+  selectedFiles = files;
+  const grid = document.getElementById('previewGrid');
+  grid.innerHTML = '';
+  grid.style.display = 'grid';
+  document.getElementById('uploadBtn').disabled = false;
+  document.getElementById('clearBtn').style.display = 'inline-flex';
+  document.getElementById('fileCount').textContent = `(${files.length} photo${files.length>1?'s':''})`;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const div = document.createElement('div');
+      div.className = 'upload-preview-item';
+      div.innerHTML = `<img src="${e.target.result}" alt=""><span class="preview-name">${file.name.substring(0,18)}${file.name.length>18?'…':''}</span><span class="preview-size">${(file.size/1024/1024).toFixed(1)} Mo</span>`;
+      grid.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function clearFiles() {
+  selectedFiles = [];
+  document.getElementById('previewGrid').style.display = 'none';
+  document.getElementById('previewGrid').innerHTML = '';
+  document.getElementById('uploadBtn').disabled = true;
+  document.getElementById('clearBtn').style.display = 'none';
+  document.getElementById('fileCount').textContent = '';
+  fileInput.value = '';
+}
+
+async function uploadOne(file) {
+  const data = new FormData();
+  data.append('file', file);
+  data.append('upload_preset', uploadPreset);
+  data.append('folder', 'portfolio');
+  const r = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method:'POST', body:data });
+  const json = await r.json();
+  return json.secure_url || null;
+}
+
+async function startUpload() {
+  if (!selectedFiles.length) return;
+  if (!cloudName || !uploadPreset) {
+    alert('Cloudinary non configuré. Vérifiez CLOUDINARY_CLOUD_NAME et CLOUDINARY_UPLOAD_PRESET sur Vercel.');
+    return;
+  }
+
+  document.getElementById('uploadBtn').disabled = true;
+  document.getElementById('clearBtn').style.display = 'none';
+  document.getElementById('progressWrap').style.display = 'block';
+
+  const fill  = document.getElementById('progressFill');
+  const text  = document.getElementById('progressText');
+  const total = selectedFiles.length;
+  const urls  = [];
+
+  for (let i = 0; i < total; i++) {
+    text.textContent = `Photo ${i+1} / ${total} en cours…`;
+    fill.style.width = `${Math.round((i/total)*90)}%`;
+    const url = await uploadOne(selectedFiles[i]);
+    if (url) urls.push(url);
+    else console.warn('Échec upload:', selectedFiles[i].name);
+  }
+
+  if (!urls.length) {
+    text.textContent = 'Aucune photo uploadée. Réessayez.';
+    fill.style.width = '0%';
+    document.getElementById('uploadBtn').disabled = false;
+    return;
+  }
+
+  // Sauvegarder les URLs en base
+  text.textContent = 'Sauvegarde en base de données…';
+  fill.style.width = '95%';
+
+  const payload = {
+    urls, category: document.getElementById('upCategory').value,
+    title: document.getElementById('upTitle').value,
+    description: document.getElementById('upDesc').value
+  };
+
+  const resp = await fetch('/admin/gallery/save-urls', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const result = await resp.json();
+
+  fill.style.width = '100%';
+  if (result.success) {
+    text.textContent = `✓ ${result.count} photo(s) ajoutée(s) avec succès !`;
+    setTimeout(() => window.location.reload(), 1200);
+  } else {
+    text.textContent = 'Erreur lors de la sauvegarde.';
+  }
+}
+</script>
+{% endblock %}
